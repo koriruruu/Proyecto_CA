@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Pronóstico SARIMA — Consumo de Servidores</title>
+  <title>Dashboard Industrial — Pronóstico SARIMA</title>
 
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -16,13 +16,13 @@
         extend: {
           colors: {
             pastel: {
-              bg: '#f4f8fc',         // Fondo general pastel suave
-              card: '#ffffff',       // Tarjetas blancas
-              border: '#dbeafe',     // Bordes azul pastel
-              primary: '#0284c7',    // Azul pastel principal
-              soft: '#eff6ff',       // Relleno de campos
-              darkText: '#1e293b',   // Texto principal
-              mutedText: '#64748b'   // Texto secundario
+              bg: '#f4f8fc',
+              card: '#ffffff',
+              border: '#dbeafe',
+              primary: '#0284c7',
+              soft: '#eff6ff',
+              darkText: '#1e293b',
+              mutedText: '#64748b'
             }
           }
         }
@@ -47,8 +47,16 @@
         </div>
       </div>
 
-      <!-- Estado de la API -->
-      <div class="flex items-center gap-3 text-xs">
+      <!-- Controles de Vivo y Estado -->
+      <div class="flex items-center gap-4 text-xs">
+        <!-- Switch Auto-refresh -->
+        <label class="flex items-center gap-2 cursor-pointer bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-full">
+          <input type="checkbox" id="check-autorefresh" onchange="toggleAutoRefresh()" class="rounded text-sky-600 focus:ring-sky-400">
+          <span class="text-slate-600 font-medium">Auto-refresh (60s)</span>
+          <span id="timer-refresh" class="text-sky-600 font-mono font-bold hidden">60s</span>
+        </label>
+
+        <!-- Badge de Estado de API -->
         <div id="badge-salud" class="px-3 py-1.5 rounded-full bg-slate-100 border border-slate-200 text-slate-600 flex items-center gap-2 font-medium">
           <span class="w-2 h-2 rounded-full bg-slate-400 animate-pulse"></span>
           <span>Consultando API...</span>
@@ -59,7 +67,18 @@
 
   <main class="max-w-7xl mx-auto px-4 mt-6 space-y-6 flex-grow w-full">
 
-    <!-- Banner de Error (Oculto por defecto) -->
+    <!-- Banner de Alerta de Umbral / Crítico -->
+    <div id="banner-alerta-pico" class="hidden bg-amber-50 border border-amber-200 text-amber-900 p-4 rounded-2xl flex items-start justify-between shadow-sm">
+      <div class="flex items-start gap-3">
+        <svg class="w-5 h-5 text-amber-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+        <div>
+          <h3 class="font-bold text-amber-800 text-sm">Alerta Operativa de Alto Consumo Detectada</h3>
+          <p id="mensaje-alerta-pico" class="text-xs text-amber-700 mt-0.5"></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Banner de Error API -->
     <div id="banner-error" class="hidden bg-rose-50 border border-rose-200 text-rose-800 p-4 rounded-2xl flex items-start justify-between shadow-sm">
       <div class="flex items-start gap-3">
         <svg class="w-5 h-5 text-rose-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -131,15 +150,15 @@
       </div>
     </section>
 
-    <!-- Indicadores Destacados (KPIs) -->
+    <!-- Indicadores Destacados (KPIs) con Tendencia -->
     <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       
       <div class="bg-white p-4 rounded-2xl border border-pastel-border shadow-sm">
         <div class="flex items-center justify-between">
           <p class="text-xs text-pastel-mutedText font-medium">Próxima Hora</p>
-          <span class="p-1.5 bg-sky-100 text-sky-600 rounded-lg">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
-          </span>
+          <div id="kpi-tendencia-badge" class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 text-slate-500">
+            --
+          </div>
         </div>
         <p id="kpi-proxima" class="text-2xl font-bold text-sky-700 mt-2">--</p>
         <p id="kpi-proxima-fecha" class="text-xs text-slate-400 mt-1">--:-- Hora Colombia</p>
@@ -180,14 +199,29 @@
 
     </section>
 
-    <!-- Gráfica Dinámica Principal -->
+    <!-- Gráfica Dinámica Principal con Controles de Visibilidad -->
     <section class="bg-white p-5 rounded-2xl border border-pastel-border shadow-sm">
-      <div class="mb-4">
-        <h2 class="text-sm font-bold text-slate-800 flex items-center gap-2">
-          <svg class="w-4 h-4 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"/></svg>
-          Serie Histórica y Proyección SARIMA
-        </h2>
-        <p class="text-xs text-pastel-mutedText">Visualización del histórico del sensor frente al intervalo de confianza pronosticado</p>
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+        <div>
+          <h2 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+            <svg class="w-4 h-4 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"/></svg>
+            Serie Histórica y Proyección SARIMA
+          </h2>
+          <p class="text-xs text-pastel-mutedText">Visualización del histórico del sensor frente al intervalo de confianza pronosticado</p>
+        </div>
+
+        <!-- Controles para alternar visualización de datasets -->
+        <div class="flex items-center gap-1.5 bg-slate-50 p-1 rounded-xl border border-slate-200">
+          <button onclick="toggleDataset(0)" class="px-2.5 py-1 text-[11px] font-medium rounded-lg bg-sky-100 text-sky-700 hover:bg-sky-200 transition-colors">
+            Histórico
+          </button>
+          <button onclick="toggleDataset(1)" class="px-2.5 py-1 text-[11px] font-medium rounded-lg bg-indigo-100 text-indigo-700 hover:bg-indigo-200 transition-colors">
+            Pronóstico
+          </button>
+          <button onclick="toggleDataset(3)" class="px-2.5 py-1 text-[11px] font-medium rounded-lg bg-purple-100 text-purple-700 hover:bg-purple-200 transition-colors">
+            Incertidumbre
+          </button>
+        </div>
       </div>
 
       <div class="relative h-[360px] w-full">
@@ -198,7 +232,7 @@
     <!-- Ficha Técnica y Tabla -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       
-      <!-- Ficha Técnica -->
+      <!-- Ficha Técnica Avanzada -->
       <section class="bg-white p-5 rounded-2xl border border-pastel-border shadow-sm space-y-4">
         <div class="border-b border-slate-100 pb-3">
           <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
@@ -207,7 +241,7 @@
           </h3>
         </div>
 
-        <div class="space-y-3 text-xs">
+        <div class="space-y-2.5 text-xs">
           <div class="flex justify-between py-1 border-b border-slate-100">
             <span class="text-slate-500">Orden ARIMA (p, d, q):</span>
             <span id="mod-order" class="font-mono text-sky-700 font-semibold">--</span>
@@ -223,6 +257,14 @@
           <div class="flex justify-between py-1 border-b border-slate-100">
             <span class="text-slate-500">Error MAE:</span>
             <span id="mod-mae" class="font-mono text-emerald-600 font-semibold">--</span>
+          </div>
+          <div class="flex justify-between py-1 border-b border-slate-100">
+            <span class="text-slate-500">Promedio Estimado:</span>
+            <span id="mod-promedio" class="font-mono text-indigo-600 font-semibold">--</span>
+          </div>
+          <div class="flex justify-between py-1 border-b border-slate-100">
+            <span class="text-slate-500">Mínimo Esperado:</span>
+            <span id="mod-minimo" class="font-mono text-slate-600 font-semibold">--</span>
           </div>
           <div class="flex justify-between py-1">
             <span class="text-slate-500">Fecha Entrenado:</span>
@@ -240,7 +282,7 @@
           </h3>
         </div>
 
-        <div class="overflow-x-auto max-h-[200px] overflow-y-auto pr-1">
+        <div class="overflow-x-auto max-h-[220px] overflow-y-auto pr-1">
           <table class="w-full text-left text-xs text-slate-700">
             <thead class="bg-slate-50 text-slate-500 uppercase font-semibold sticky top-0 border-b border-slate-200">
               <tr>
@@ -267,13 +309,16 @@
   <footer class="mt-12 bg-white border-t border-pastel-border py-6 text-center text-xs text-slate-500">
     <div class="max-w-7xl mx-auto px-4 space-y-1">
       <p class="font-semibold text-slate-700">Valery Ochoa — Ingeniería de Software</p>
-      <p>Entrega de trabajo final - Programación Avanzada - Profe Carlos Mario Correa Torres.</p>
+      <p>Entrega de trabajo final para la materia de Programación Avanzada al profe Carlos Mario Correa Torres.</p>
     </div>
   </footer>
 
   <script>
     let miGrafica = null;
     let datosRespuesta = null;
+    let autoRefreshInterval = null;
+    let countdownInterval = null;
+    let timerSeconds = 60;
 
     // Conversión a Hora de Colombia (UTC-5)
     function aHoraColombia(fechaUtcStr) {
@@ -294,17 +339,46 @@
     }
 
     function mostrarError(mensaje) {
-      document.getElementById("mensaje-error").textContent = mensaje;
-      document.getElementById("banner-error").classList.remove("hidden");
+      const banner = document.getElementById("banner-error");
+      const text = document.getElementById("mensaje-error");
+      if (text) text.textContent = mensaje;
+      if (banner) banner.classList.remove("hidden");
     }
 
     function ocultarError() {
-      document.getElementById("banner-error").classList.add("hidden");
+      const banner = document.getElementById("banner-error");
+      if (banner) banner.classList.add("hidden");
     }
 
-    // Estado de Salud de la API
+    // Auto-refresh logic
+    function toggleAutoRefresh() {
+      const check = document.getElementById("check-autorefresh");
+      const timerSpan = document.getElementById("timer-refresh");
+
+      if (check.checked) {
+        timerSpan.classList.remove("hidden");
+        timerSeconds = 60;
+        timerSpan.textContent = `${timerSeconds}s`;
+
+        countdownInterval = setInterval(() => {
+          timerSeconds--;
+          timerSpan.textContent = `${timerSeconds}s`;
+          if (timerSeconds <= 0) timerSeconds = 60;
+        }, 1000);
+
+        autoRefreshInterval = setInterval(() => {
+          cargarTodo();
+        }, 60000);
+      } else {
+        timerSpan.classList.add("hidden");
+        clearInterval(autoRefreshInterval);
+        clearInterval(countdownInterval);
+      }
+    }
+
     async function verificarSalud() {
       const badge = document.getElementById("badge-salud");
+      if (!badge) return;
       try {
         const res = await fetch("/api/salud");
         const data = await res.json();
@@ -316,8 +390,11 @@
             <span class="text-emerald-700 font-medium">Servicio Activo${modoDemo}${atendido}</span>
           `;
           badge.className = "px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-xs flex items-center gap-2";
+        } else {
+          throw new Error(`HTTP ${res.status}`);
         }
       } catch (err) {
+        console.error("Error en /api/salud:", err);
         badge.innerHTML = `
           <span class="w-2 h-2 rounded-full bg-rose-500"></span>
           <span class="text-rose-700 font-medium">API Desconectada</span>
@@ -326,37 +403,47 @@
       }
     }
 
-    // Metadatos del Modelo SARIMA
     async function cargarMetadatosModelo() {
       try {
         const res = await fetch("/api/modelo");
         if (!res.ok) return;
         const info = await res.json();
 
-        document.getElementById("mod-order").textContent = JSON.stringify(info.order || info.orden || "--");
-        document.getElementById("mod-seasonal").textContent = JSON.stringify(info.seasonal_order || info.orden_estacional || "--");
-        document.getElementById("mod-target").textContent = `${info.measurement || 'Server'} / ${info.field || 'Consumo'}`;
-        document.getElementById("mod-mae").textContent = info.metricas?.mae ? Number(info.metricas.mae).toFixed(3) : "--";
-        document.getElementById("mod-fecha").textContent = info.fecha_entrenamiento ? aHoraColombia(info.fecha_entrenamiento) : "Reciente";
+        const elOrder = document.getElementById("mod-order");
+        const elSeasonal = document.getElementById("mod-seasonal");
+        const elTarget = document.getElementById("mod-target");
+        const elMae = document.getElementById("mod-mae");
+        const elFecha = document.getElementById("mod-fecha");
+
+        if (elOrder) elOrder.textContent = JSON.stringify(info.order || info.orden || "--");
+        if (elSeasonal) elSeasonal.textContent = JSON.stringify(info.seasonal_order || info.orden_estacional || "--");
+        if (elTarget) elTarget.textContent = `${info.measurement || 'Server'} / ${info.field || 'Consumo'}`;
+        if (elMae) elMae.textContent = info.metricas?.mae ? Number(info.metricas.mae).toFixed(3) : "--";
+        if (elFecha) elFecha.textContent = info.fecha_entrenamiento ? aHoraColombia(info.fecha_entrenamiento) : "Reciente";
       } catch (e) {
-        console.warn("No se cargaron metadatos:", e);
+        console.warn("Metadatos no disponibles:", e);
       }
     }
 
-    // Pronóstico
     async function cargarPronostico() {
       ocultarError();
 
-      const horas = document.getElementById("select-horas").value;
-      const historia = document.getElementById("select-historia").value;
-      const confianza = document.getElementById("select-confianza").value;
+      const selectHoras = document.getElementById("select-horas");
+      const selectHistoria = document.getElementById("select-historia");
+      const selectConfianza = document.getElementById("select-confianza");
+
+      if (!selectHoras || !selectHistoria || !selectConfianza) return;
+
+      const horas = selectHoras.value;
+      const historia = selectHistoria.value;
+      const confianza = selectConfianza.value;
 
       try {
         const res = await fetch(`/api/prediccion?horas=${horas}&historia=${historia}&confianza=${confianza}`);
         const data = await res.json();
 
         if (!res.ok) {
-          throw new Error(data.detail || "Error al obtener la predicción.");
+          throw new Error(data.detail || `Error HTTP ${res.status}`);
         }
 
         datosRespuesta = data;
@@ -365,6 +452,7 @@
         renderizarGrafica(data);
 
       } catch (err) {
+        console.error("Error en /api/prediccion:", err);
         mostrarError(err.message);
       }
     }
@@ -372,30 +460,74 @@
     function actualizarKPIs(data) {
       const pred = data.prediccion || [];
       const hist = data.historico || [];
+      const bannerPico = document.getElementById("banner-alerta-pico");
+      const msgPico = document.getElementById("mensaje-alerta-pico");
 
-      if (pred.length > 0) {
-        document.getElementById("kpi-proxima").textContent = pred[0].prediccion.toFixed(2);
-        document.getElementById("kpi-proxima-fecha").textContent = aHoraColombia(pred[0].tiempo);
-
-        const maxVal = Math.max(...pred.map(p => p.limite_superior));
-        document.getElementById("kpi-maximo").textContent = maxVal.toFixed(2);
-      }
-
+      let ultimoValorReal = null;
       if (hist.length > 0) {
         const ultimo = hist[hist.length - 1];
-        document.getElementById("kpi-ultimo-valor").textContent = ultimo.valor.toFixed(2);
-        document.getElementById("kpi-ultimo-tiempo").textContent = aHoraColombia(ultimo.tiempo);
+        ultimoValorReal = ultimo.valor;
+        const kpiUltVal = document.getElementById("kpi-ultimo-valor");
+        const kpiUltTiempo = document.getElementById("kpi-ultimo-tiempo");
+        if (kpiUltVal) kpiUltVal.textContent = ultimo.valor.toFixed(2);
+        if (kpiUltTiempo) kpiUltTiempo.textContent = aHoraColombia(ultimo.tiempo);
+      }
+
+      if (pred.length > 0) {
+        const primeraPred = pred[0].prediccion;
+        const kpiProx = document.getElementById("kpi-proxima");
+        const kpiProxFecha = document.getElementById("kpi-proxima-fecha");
+        const badgeTendencia = document.getElementById("kpi-tendencia-badge");
+
+        if (kpiProx) kpiProx.textContent = primeraPred.toFixed(2);
+        if (kpiProxFecha) kpiProxFecha.textContent = aHoraColombia(pred[0].tiempo);
+
+        // Cálculo de porcentaje de cambio (Tendencia)
+        if (ultimoValorReal !== null && badgeTendencia) {
+          const pct = ((primeraPred - ultimoValorReal) / ultimoValorReal) * 100;
+          const signo = pct >= 0 ? "+" : "";
+          badgeTendencia.textContent = `${signo}${pct.toFixed(1)}%`;
+          badgeTendencia.className = pct >= 0 
+            ? "px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-100 text-amber-700"
+            : "px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-100 text-emerald-700";
+        }
+
+        // Estadísticas agregadas del pronóstico
+        const maxVal = Math.max(...pred.map(p => p.limite_superior));
+        const minVal = Math.min(...pred.map(p => p.limite_inferior));
+        const avgVal = pred.reduce((acc, p) => acc + p.prediccion, 0) / pred.length;
+
+        const kpiMax = document.getElementById("kpi-maximo");
+        if (kpiMax) kpiMax.textContent = maxVal.toFixed(2);
+
+        const elProm = document.getElementById("mod-promedio");
+        const elMin = document.getElementById("mod-minimo");
+        if (elProm) elProm.textContent = avgVal.toFixed(2);
+        if (elMin) elMin.textContent = minVal.toFixed(2);
+
+        // Alerta de Umbral de Consumo (Picos superiores a 480 kW)
+        if (maxVal > 480 && bannerPico && msgPico) {
+          const picoObj = pred.reduce((prev, curr) => (curr.limite_superior > prev.limite_superior) ? curr : prev, pred[0]);
+          msgPico.textContent = `Se pronostica un pico máximo de ${maxVal.toFixed(2)} a las ${aHoraColombia(picoObj.tiempo)}. Se sugiere preparar reserva operativa.`;
+          bannerPico.classList.remove("hidden");
+        } else if (bannerPico) {
+          bannerPico.classList.add("hidden");
+        }
       }
 
       const rellenadas = data.horas_rellenadas || 0;
-      document.getElementById("kpi-rellenadas").textContent = rellenadas;
-      document.getElementById("kpi-calidad-estado").textContent = rellenadas === 0 
+      const kpiRell = document.getElementById("kpi-rellenadas");
+      const kpiCal = document.getElementById("kpi-calidad-estado");
+      if (kpiRell) kpiRell.textContent = rellenadas;
+      if (kpiCal) kpiCal.textContent = rellenadas === 0 
         ? "✅ Serie continua sin huecos" 
         : `⚠️ ${rellenadas}h ajustadas por el sistema`;
     }
 
     function actualizarTabla(predicciones) {
       const tbody = document.getElementById("filas-prediccion");
+      if (!tbody) return;
+
       if (!predicciones || predicciones.length === 0) {
         tbody.innerHTML = `<tr><td colspan="4" class="p-3 text-center text-slate-400">Sin predicciones disponibles</td></tr>`;
         return;
@@ -412,7 +544,11 @@
     }
 
     function renderizarGrafica(data) {
-      const ctx = document.getElementById("chartPronostico").getContext("2d");
+      if (typeof Chart === "undefined") return;
+      const canvas = document.getElementById("chartPronostico");
+      if (!canvas) return;
+
+      const ctx = canvas.getContext("2d");
       const hist = data.historico || [];
       const pred = data.prediccion || [];
 
@@ -522,11 +658,67 @@
       });
     }
 
-    // Exportación
+    function toggleDataset(index) {
+      if (!miGrafica) return;
+      const isVisible = miGrafica.isDatasetVisible(index);
+      if (isVisible) {
+        miGrafica.hide(index);
+        if (index === 3) miGrafica.hide(2); // Oculta también el dataset pareado del intervalo
+      } else {
+        miGrafica.show(index);
+        if (index === 3) miGrafica.show(2);
+      }
+    }
+
     function descargarCSV() {
       if (!datosRespuesta || !datosRespuesta.prediccion) {
         mostrarError("No hay datos para descargar.");
         return;
       }
       let csv = "Tiempo (Colombia),Tiempo (UTC),Prediccion,Limite Inferior,Limite Superior\n";
-      datosRespuesta.
+      datosRespuesta.prediccion.forEach(p => {
+        csv += `"${aHoraColombia(p.tiempo)}","${p.tiempo}",${p.prediccion},${p.limite_inferior},${p.limite_superior}\n`;
+      });
+
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", `pronostico_servidores_${new Date().toISOString().slice(0, 10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    function descargarJSON() {
+      if (!datosRespuesta) {
+        mostrarError("No hay datos para descargar.");
+        return;
+      }
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(datosRespuesta, null, 2));
+      const link = document.createElement("a");
+      link.setAttribute("href", dataStr);
+      link.setAttribute("download", `pronostico_servidores_${new Date().toISOString().slice(0, 10)}.json`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    function cargarTodo() {
+      verificarSalud();
+      cargarMetadatosModelo();
+      cargarPronostico();
+    }
+
+    // Exposición de funciones globales para botones
+    window.cargarTodo = cargarTodo;
+    window.descargarCSV = descargarCSV;
+    window.descargarJSON = descargarJSON;
+    window.ocultarError = ocultarError;
+    window.toggleDataset = toggleDataset;
+    window.toggleAutoRefresh = toggleAutoRefresh;
+
+    document.addEventListener("DOMContentLoaded", cargarTodo);
+  </script>
+</body>
+</html>
