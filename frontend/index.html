@@ -3,29 +3,26 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Dashboard de Pronóstico Energético — Servidores</title>
+  <title>Pronóstico SARIMA — Consumo de Servidores</title>
 
-  <!-- Tailwind CSS para diseño estilizado y responsive -->
+  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Chart.js para visualización gráfica dinámica -->
+  <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- Lucide Icons para iconografía moderna -->
-  <script src="https://unpkg.com/lucide@latest"></script>
 
   <script>
     tailwind.config = {
       theme: {
         extend: {
           colors: {
-            brand: {
-              dark: '#0f172a',
-              card: '#1e293b',
-              border: '#334155',
-              cyan: '#06b6d4',
-              electric: '#3b82f6',
-              accent: '#10b981',
-              warning: '#f59e0b',
-              alert: '#ef4444'
+            pastel: {
+              bg: '#f4f8fc',         // Fondo general pastel suave
+              card: '#ffffff',       // Tarjetas blancas
+              border: '#dbeafe',     // Bordes azul pastel
+              primary: '#0284c7',    // Azul pastel principal
+              soft: '#eff6ff',       // Relleno de campos
+              darkText: '#1e293b',   // Texto principal
+              mutedText: '#64748b'   // Texto secundario
             }
           }
         }
@@ -33,66 +30,66 @@
     }
   </script>
 </head>
-<body class="bg-brand-dark text-slate-100 font-sans min-h-screen pb-12">
+<body class="bg-pastel-bg text-pastel-darkText font-sans min-h-screen flex flex-col">
 
   <!-- Header / Barra Superior -->
-  <header class="bg-brand-card/90 border-b border-brand-border sticky top-0 z-50 backdrop-blur-md">
-    <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+  <header class="bg-white/90 border-b border-pastel-border sticky top-0 z-50 backdrop-blur-md shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 py-3.5 flex flex-col md:flex-row md:items-center justify-between gap-4">
       <div class="flex items-center gap-3">
-        <div class="p-2.5 bg-brand-cyan/10 rounded-xl border border-brand-cyan/30 text-brand-cyan">
-          <i data-lucide="zap" class="w-6 h-6"></i>
+        <div class="p-2 bg-sky-100 text-sky-600 rounded-xl border border-sky-200">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
         </div>
         <div>
-          <h1 class="text-xl font-bold text-white flex items-center gap-2">
-            Pronóstico de Consumo Eléctrico — <span class="text-brand-cyan">Server</span>
+          <h1 class="text-lg md:text-xl font-bold text-slate-800 flex items-center gap-2">
+            Dashboard de Pronóstico — <span class="text-sky-600">Servidores</span>
           </h1>
-          <p class="text-xs text-slate-400">Monitoreo y predicción temporal horaria (UTC-5 Colombia)</p>
+          <p class="text-xs text-pastel-mutedText">Monitoreo y serie de tiempo horaria (UTC-5 Colombia)</p>
         </div>
       </div>
 
-      <!-- Estado de la API y Modelo -->
+      <!-- Estado de la API -->
       <div class="flex items-center gap-3 text-xs">
-        <div id="badge-salud" class="px-3 py-1.5 rounded-full bg-slate-800 border border-brand-border text-slate-400 flex items-center gap-2">
-          <span class="w-2 h-2 rounded-full bg-slate-500 animate-pulse"></span>
+        <div id="badge-salud" class="px-3 py-1.5 rounded-full bg-slate-100 border border-slate-200 text-slate-600 flex items-center gap-2 font-medium">
+          <span class="w-2 h-2 rounded-full bg-slate-400 animate-pulse"></span>
           <span>Consultando API...</span>
         </div>
       </div>
     </div>
   </header>
 
-  <main class="max-w-7xl mx-auto px-4 mt-6 space-y-6">
+  <main class="max-w-7xl mx-auto px-4 mt-6 space-y-6 flex-grow w-full">
 
-    <!-- Mensaje de Error (Oculto por defecto) -->
-    <div id="banner-error" class="hidden bg-red-950/80 border border-brand-alert/50 text-red-200 p-4 rounded-xl flex items-start justify-between shadow-lg">
+    <!-- Banner de Error (Oculto por defecto) -->
+    <div id="banner-error" class="hidden bg-rose-50 border border-rose-200 text-rose-800 p-4 rounded-2xl flex items-start justify-between shadow-sm">
       <div class="flex items-start gap-3">
-        <i data-lucide="alert-triangle" class="w-5 h-5 text-brand-alert shrink-0 mt-0.5"></i>
+        <svg class="w-5 h-5 text-rose-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
         <div>
-          <h3 class="font-semibold text-brand-alert">Error en la consulta</h3>
-          <p id="mensaje-error" class="text-sm text-red-300 mt-0.5"></p>
+          <h3 class="font-semibold text-rose-700 text-sm">Error en la consulta</h3>
+          <p id="mensaje-error" class="text-xs text-rose-600 mt-0.5"></p>
         </div>
       </div>
-      <button onclick="ocultarError()" class="text-red-400 hover:text-white p-1">
-        <i data-lucide="x" class="w-5 h-5"></i>
+      <button onclick="ocultarError()" class="text-rose-400 hover:text-rose-700 p-1">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
       </button>
     </div>
 
-    <!-- Panel de Controles y Filtros -->
-    <section class="bg-brand-card p-5 rounded-2xl border border-brand-border shadow-xl">
-      <div class="flex items-center justify-between mb-4 border-b border-brand-border pb-3">
-        <div class="flex items-center gap-2 text-brand-cyan font-semibold text-sm">
-          <i data-lucide="sliders" class="w-4 h-4"></i>
+    <!-- Panel de Filtros -->
+    <section class="bg-pastel-card p-5 rounded-2xl border border-pastel-border shadow-sm">
+      <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
+        <div class="flex items-center gap-2 text-sky-700 font-semibold text-sm">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
           <span>Filtros y Parámetros del Pronóstico</span>
         </div>
-        <button onclick="cargarTodo()" class="bg-brand-cyan hover:bg-cyan-500 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs transition-all flex items-center gap-2 shadow-lg shadow-brand-cyan/20">
-          <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+        <button onclick="cargarTodo()" class="bg-sky-500 hover:bg-sky-600 text-white font-medium px-4 py-2 rounded-xl text-xs transition-colors shadow-sm flex items-center gap-2">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
           <span>Actualizar</span>
         </button>
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div>
-          <label class="block text-xs font-medium text-slate-400 mb-1">Horas a Pronosticar</label>
-          <select id="select-horas" class="w-full bg-brand-dark border border-brand-border rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-brand-cyan transition-colors">
+          <label class="block text-xs font-medium text-pastel-mutedText mb-1">Horas a Pronosticar</label>
+          <select id="select-horas" class="w-full bg-pastel-soft border border-pastel-border rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none focus:border-sky-400">
             <option value="6">6 Horas</option>
             <option value="12" selected>12 Horas</option>
             <option value="24">24 Horas (1 Día)</option>
@@ -101,8 +98,8 @@
         </div>
 
         <div>
-          <label class="block text-xs font-medium text-slate-400 mb-1">Historial de Contexto</label>
-          <select id="select-historia" class="w-full bg-brand-dark border border-brand-border rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-brand-cyan transition-colors">
+          <label class="block text-xs font-medium text-pastel-mutedText mb-1">Historial de Contexto</label>
+          <select id="select-historia" class="w-full bg-pastel-soft border border-pastel-border rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none focus:border-sky-400">
             <option value="24">Últimas 24h</option>
             <option value="48" selected>Últimas 48h</option>
             <option value="72">Últimas 72h</option>
@@ -111,8 +108,8 @@
         </div>
 
         <div>
-          <label class="block text-xs font-medium text-slate-400 mb-1">Intervalo de Confianza</label>
-          <select id="select-confianza" class="w-full bg-brand-dark border border-brand-border rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-brand-cyan transition-colors">
+          <label class="block text-xs font-medium text-pastel-mutedText mb-1">Intervalo de Confianza</label>
+          <select id="select-confianza" class="w-full bg-pastel-soft border border-pastel-border rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none focus:border-sky-400">
             <option value="0.80">80%</option>
             <option value="0.90">90%</option>
             <option value="0.95" selected>95%</option>
@@ -121,129 +118,131 @@
         </div>
 
         <div>
-          <label class="block text-xs font-medium text-slate-400 mb-1">Exportar Datos</label>
+          <label class="block text-xs font-medium text-pastel-mutedText mb-1">Descargar Pronóstico</label>
           <div class="flex gap-2">
-            <button onclick="descargarCSV()" class="flex-1 bg-slate-800 hover:bg-slate-700 border border-brand-border text-slate-200 py-2 rounded-xl text-xs font-medium transition-colors flex items-center justify-center gap-1.5">
-              <i data-lucide="download" class="w-3.5 h-3.5 text-brand-cyan"></i> CSV
+            <button onclick="descargarCSV()" class="flex-1 bg-sky-50 hover:bg-sky-100 border border-sky-200 text-sky-700 py-2 rounded-xl text-xs font-medium transition-colors flex items-center justify-center gap-1.5">
+              <svg class="w-3.5 h-3.5 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg> CSV
             </button>
-            <button onclick="descargarJSON()" class="flex-1 bg-slate-800 hover:bg-slate-700 border border-brand-border text-slate-200 py-2 rounded-xl text-xs font-medium transition-colors flex items-center justify-center gap-1.5">
-              <i data-lucide="file-json" class="w-3.5 h-3.5 text-brand-electric"></i> JSON
+            <button onclick="descargarJSON()" class="flex-1 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-700 py-2 rounded-xl text-xs font-medium transition-colors flex items-center justify-center gap-1.5">
+              <svg class="w-3.5 h-3.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg> JSON
             </button>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Cards de Indicadores Destacados (KPIs) -->
+    <!-- Indicadores Destacados (KPIs) -->
     <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       
-      <div class="bg-brand-card p-4 rounded-2xl border border-brand-border relative overflow-hidden">
-        <div class="absolute -right-3 -bottom-3 text-brand-cyan/10">
-          <i data-lucide="trending-up" class="w-24 h-24"></i>
+      <div class="bg-white p-4 rounded-2xl border border-pastel-border shadow-sm">
+        <div class="flex items-center justify-between">
+          <p class="text-xs text-pastel-mutedText font-medium">Próxima Hora</p>
+          <span class="p-1.5 bg-sky-100 text-sky-600 rounded-lg">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+          </span>
         </div>
-        <p class="text-xs text-slate-400 font-medium">Próxima Hora Pronosticada</p>
-        <p id="kpi-proxima" class="text-3xl font-extrabold text-brand-cyan mt-1">--</p>
-        <p id="kpi-proxima-fecha" class="text-xs text-slate-500 mt-1">--:-- Hora Colombia</p>
+        <p id="kpi-proxima" class="text-2xl font-bold text-sky-700 mt-2">--</p>
+        <p id="kpi-proxima-fecha" class="text-xs text-slate-400 mt-1">--:-- Hora Colombia</p>
       </div>
 
-      <div class="bg-brand-card p-4 rounded-2xl border border-brand-border relative overflow-hidden">
-        <div class="absolute -right-3 -bottom-3 text-brand-accent/10">
-          <i data-lucide="activity" class="w-24 h-24"></i>
+      <div class="bg-white p-4 rounded-2xl border border-pastel-border shadow-sm">
+        <div class="flex items-center justify-between">
+          <p class="text-xs text-pastel-mutedText font-medium">Máximo Esperado</p>
+          <span class="p-1.5 bg-emerald-100 text-emerald-600 rounded-lg">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          </span>
         </div>
-        <p class="text-xs text-slate-400 font-medium">Máximo Consumo Esperado</p>
-        <p id="kpi-maximo" class="text-3xl font-extrabold text-brand-accent mt-1">--</p>
-        <p id="kpi-maximo-rango" class="text-xs text-slate-500 mt-1">En periodo seleccionado</p>
+        <p id="kpi-maximo" class="text-2xl font-bold text-emerald-600 mt-2">--</p>
+        <p id="kpi-maximo-rango" class="text-xs text-slate-400 mt-1">En periodo seleccionado</p>
       </div>
 
-      <div class="bg-brand-card p-4 rounded-2xl border border-brand-border relative overflow-hidden">
-        <div class="absolute -right-3 -bottom-3 text-brand-electric/10">
-          <i data-lucide="clock" class="w-24 h-24"></i>
+      <div class="bg-white p-4 rounded-2xl border border-pastel-border shadow-sm">
+        <div class="flex items-center justify-between">
+          <p class="text-xs text-pastel-mutedText font-medium">Último Dato Real</p>
+          <span class="p-1.5 bg-indigo-100 text-indigo-600 rounded-lg">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </span>
         </div>
-        <p class="text-xs text-slate-400 font-medium">Última Observación Real</p>
-        <p id="kpi-ultimo-valor" class="text-3xl font-extrabold text-brand-electric mt-1">--</p>
-        <p id="kpi-ultimo-tiempo" class="text-xs text-slate-500 mt-1">--:-- Hora Colombia</p>
+        <p id="kpi-ultimo-valor" class="text-2xl font-bold text-indigo-600 mt-2">--</p>
+        <p id="kpi-ultimo-tiempo" class="text-xs text-slate-400 mt-1">--:-- Hora Colombia</p>
       </div>
 
-      <div class="bg-brand-card p-4 rounded-2xl border border-brand-border relative overflow-hidden">
-        <div class="absolute -right-3 -bottom-3 text-brand-warning/10">
-          <i data-lucide="shield-check" class="w-24 h-24"></i>
+      <div class="bg-white p-4 rounded-2xl border border-pastel-border shadow-sm">
+        <div class="flex items-center justify-between">
+          <p class="text-xs text-pastel-mutedText font-medium">Calidad de Sensor</p>
+          <span class="p-1.5 bg-amber-100 text-amber-600 rounded-lg">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+          </span>
         </div>
-        <p class="text-xs text-slate-400 font-medium">Calidad de Datos Sensor</p>
-        <p id="kpi-rellenadas" class="text-3xl font-extrabold text-brand-warning mt-1">--</p>
-        <p id="kpi-calidad-estado" class="text-xs text-slate-500 mt-1">Horas interpoladas</p>
+        <p id="kpi-rellenadas" class="text-2xl font-bold text-amber-600 mt-2">--</p>
+        <p id="kpi-calidad-estado" class="text-xs text-slate-400 mt-1">Horas interpoladas</p>
       </div>
 
     </section>
 
     <!-- Gráfica Dinámica Principal -->
-    <section class="bg-brand-card p-5 rounded-2xl border border-brand-border shadow-xl">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
-        <div>
-          <h2 class="text-base font-bold text-white flex items-center gap-2">
-            <i data-lucide="line-chart" class="w-5 h-5 text-brand-cyan"></i>
-            Visualización Temporal de Datos y Proyección SARIMA
-          </h2>
-          <p class="text-xs text-slate-400">Comparativa de datos históricos del sensor frente a la banda de incertidumbre del modelo</p>
-        </div>
+    <section class="bg-white p-5 rounded-2xl border border-pastel-border shadow-sm">
+      <div class="mb-4">
+        <h2 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+          <svg class="w-4 h-4 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"/></svg>
+          Serie Histórica y Proyección SARIMA
+        </h2>
+        <p class="text-xs text-pastel-mutedText">Visualización del histórico del sensor frente al intervalo de confianza pronosticado</p>
       </div>
 
-      <div class="relative h-[380px] w-full">
+      <div class="relative h-[360px] w-full">
         <canvas id="chartPronostico"></canvas>
       </div>
     </section>
 
-    <!-- Sección Interactiva: Ficha Técnica del Modelo y Tabla de Resultados -->
+    <!-- Ficha Técnica y Tabla -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       
-      <!-- Información del Modelo SARIMA -->
-      <section class="bg-brand-card p-5 rounded-2xl border border-brand-border shadow-xl space-y-4">
-        <div class="border-b border-brand-border pb-3">
-          <h3 class="text-sm font-bold text-white flex items-center gap-2">
-            <i data-lucide="cpu" class="w-4 h-4 text-brand-cyan"></i>
-            Especificación del Modelo SARIMA
+      <!-- Ficha Técnica -->
+      <section class="bg-white p-5 rounded-2xl border border-pastel-border shadow-sm space-y-4">
+        <div class="border-b border-slate-100 pb-3">
+          <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+            <svg class="w-4 h-4 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/></svg>
+            Ficha del Modelo SARIMA
           </h3>
-          <p class="text-xs text-slate-400">Parámetros de configuración en producción</p>
         </div>
 
         <div class="space-y-3 text-xs">
-          <div class="flex justify-between py-1.5 border-b border-slate-800">
-            <span class="text-slate-400">Orden ARIMA (p, d, q):</span>
-            <span id="mod-order" class="font-mono text-brand-cyan font-semibold">--</span>
+          <div class="flex justify-between py-1 border-b border-slate-100">
+            <span class="text-slate-500">Orden ARIMA (p, d, q):</span>
+            <span id="mod-order" class="font-mono text-sky-700 font-semibold">--</span>
           </div>
-          <div class="flex justify-between py-1.5 border-b border-slate-800">
-            <span class="text-slate-400">Orden Estacional (P, D, Q, s):</span>
-            <span id="mod-seasonal" class="font-mono text-brand-cyan font-semibold">--</span>
+          <div class="flex justify-between py-1 border-b border-slate-100">
+            <span class="text-slate-500">Estacional (P, D, Q, s):</span>
+            <span id="mod-seasonal" class="font-mono text-sky-700 font-semibold">--</span>
           </div>
-          <div class="flex justify-between py-1.5 border-b border-slate-800">
-            <span class="text-slate-400">Measurement / Field:</span>
-            <span id="mod-target" class="font-mono text-slate-200">--</span>
+          <div class="flex justify-between py-1 border-b border-slate-100">
+            <span class="text-slate-500">Measurement / Field:</span>
+            <span id="mod-target" class="font-mono text-slate-700">--</span>
           </div>
-          <div class="flex justify-between py-1.5 border-b border-slate-800">
-            <span class="text-slate-400">Error MAE (Modelo):</span>
-            <span id="mod-mae" class="font-mono text-brand-accent font-semibold">--</span>
+          <div class="flex justify-between py-1 border-b border-slate-100">
+            <span class="text-slate-500">Error MAE:</span>
+            <span id="mod-mae" class="font-mono text-emerald-600 font-semibold">--</span>
           </div>
-          <div class="flex justify-between py-1.5">
-            <span class="text-slate-400">Fecha de Entrenamiento:</span>
-            <span id="mod-fecha" class="text-slate-300">--</span>
+          <div class="flex justify-between py-1">
+            <span class="text-slate-500">Fecha Entrenado:</span>
+            <span id="mod-fecha" class="text-slate-700">--</span>
           </div>
         </div>
       </section>
 
-      <!-- Tabla Detallada del Pronóstico -->
-      <section class="lg:col-span-2 bg-brand-card p-5 rounded-2xl border border-brand-border shadow-xl space-y-4">
-        <div class="flex items-center justify-between border-b border-brand-border pb-3">
-          <div>
-            <h3 class="text-sm font-bold text-white flex items-center gap-2">
-              <i data-lucide="table" class="w-4 h-4 text-brand-electric"></i>
-              Detalle Numérico del Pronóstico
-            </h3>
-            <p class="text-xs text-slate-400">Horarios convertidos a zona local (Colombia UTC-5)</p>
-          </div>
+      <!-- Tabla Detallada -->
+      <section class="lg:col-span-2 bg-white p-5 rounded-2xl border border-pastel-border shadow-sm space-y-4">
+        <div class="border-b border-slate-100 pb-3">
+          <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+            <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            Valores Pronosticados (Hora Colombia)
+          </h3>
         </div>
 
-        <div class="overflow-x-auto max-h-[220px] overflow-y-auto pr-1">
-          <table class="w-full text-left text-xs text-slate-300">
-            <thead class="bg-brand-dark/80 text-slate-400 uppercase font-semibold sticky top-0 border-b border-brand-border">
+        <div class="overflow-x-auto max-h-[200px] overflow-y-auto pr-1">
+          <table class="w-full text-left text-xs text-slate-700">
+            <thead class="bg-slate-50 text-slate-500 uppercase font-semibold sticky top-0 border-b border-slate-200">
               <tr>
                 <th class="p-2.5">Hora (Colombia)</th>
                 <th class="p-2.5">Predicción</th>
@@ -251,9 +250,9 @@
                 <th class="p-2.5">Lím. Superior</th>
               </tr>
             </thead>
-            <tbody id="filas-prediccion" class="divide-y divide-brand-border/40">
+            <tbody id="filas-prediccion" class="divide-y divide-slate-100">
               <tr>
-                <td colspan="4" class="p-4 text-center text-slate-500">Cargando datos...</td>
+                <td colspan="4" class="p-4 text-center text-slate-400">Cargando datos...</td>
               </tr>
             </tbody>
           </table>
@@ -264,22 +263,34 @@
 
   </main>
 
+  <!-- Pie de Página -->
+  <footer class="mt-12 bg-white border-t border-pastel-border py-6 text-center text-xs text-slate-500">
+    <div class="max-w-7xl mx-auto px-4 space-y-1">
+      <p class="font-semibold text-slate-700">Valery Ochoa — Ingeniería de Software</p>
+      <p>Entrega de trabajo final - Programación Avanzada - Profe Carlos Mario Correa Torres.</p>
+    </div>
+  </footer>
+
   <script>
     let miGrafica = null;
     let datosRespuesta = null;
 
-    // Convertir de UTC a Hora Colombia (UTC-5)
+    // Conversión a Hora de Colombia (UTC-5)
     function aHoraColombia(fechaUtcStr) {
       if (!fechaUtcStr) return "--";
-      const fecha = new Date(fechaUtcStr);
-      return fecha.toLocaleString("es-CO", {
-        timeZone: "America/Bogota",
-        month: "short",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: true
-      });
+      try {
+        const fecha = new Date(fechaUtcStr);
+        return fecha.toLocaleString("es-CO", {
+          timeZone: "America/Bogota",
+          month: "short",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: true
+        });
+      } catch (e) {
+        return fechaUtcStr;
+      }
     }
 
     function mostrarError(mensaje) {
@@ -291,7 +302,7 @@
       document.getElementById("banner-error").classList.add("hidden");
     }
 
-    // Consulta de la Salud del Servicio
+    // Estado de Salud de la API
     async function verificarSalud() {
       const badge = document.getElementById("badge-salud");
       try {
@@ -299,21 +310,23 @@
         const data = await res.json();
         if (res.ok) {
           const modoDemo = data.modelo_demo ? " (Demo)" : "";
-          const atendido = data.atendido_por ? ` | Container: ${data.atendido_por.slice(0, 8)}` : "";
+          const atendido = data.atendido_por ? ` | ID: ${data.atendido_por.slice(0, 8)}` : "";
           badge.innerHTML = `
-            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-            <span class="text-emerald-400 font-medium">Servicio Online${modoDemo}${atendido}</span>
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            <span class="text-emerald-700 font-medium">Servicio Activo${modoDemo}${atendido}</span>
           `;
+          badge.className = "px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-xs flex items-center gap-2";
         }
       } catch (err) {
         badge.innerHTML = `
-          <span class="w-2 h-2 rounded-full bg-red-500"></span>
-          <span class="text-red-400 font-medium">Sin conexión con la API</span>
+          <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+          <span class="text-rose-700 font-medium">API Desconectada</span>
         `;
+        badge.className = "px-3 py-1.5 rounded-full bg-rose-50 border border-rose-200 text-xs flex items-center gap-2";
       }
     }
 
-    // Consulta de los metadatos del Modelo SARIMA
+    // Metadatos del Modelo SARIMA
     async function cargarMetadatosModelo() {
       try {
         const res = await fetch("/api/modelo");
@@ -323,14 +336,14 @@
         document.getElementById("mod-order").textContent = JSON.stringify(info.order || info.orden || "--");
         document.getElementById("mod-seasonal").textContent = JSON.stringify(info.seasonal_order || info.orden_estacional || "--");
         document.getElementById("mod-target").textContent = `${info.measurement || 'Server'} / ${info.field || 'Consumo'}`;
-        document.getElementById("mod-mae").textContent = info.metricas?.mae ? info.metricas.mae.toFixed(3) : "--";
+        document.getElementById("mod-mae").textContent = info.metricas?.mae ? Number(info.metricas.mae).toFixed(3) : "--";
         document.getElementById("mod-fecha").textContent = info.fecha_entrenamiento ? aHoraColombia(info.fecha_entrenamiento) : "Reciente";
       } catch (e) {
-        console.warn("No se pudieron cargar los metadatos del modelo:", e);
+        console.warn("No se cargaron metadatos:", e);
       }
     }
 
-    // Cargar datos principales del Pronóstico
+    // Pronóstico
     async function cargarPronostico() {
       ocultarError();
 
@@ -360,44 +373,40 @@
       const pred = data.prediccion || [];
       const hist = data.historico || [];
 
-      // 1. Próxima Hora
       if (pred.length > 0) {
         document.getElementById("kpi-proxima").textContent = pred[0].prediccion.toFixed(2);
         document.getElementById("kpi-proxima-fecha").textContent = aHoraColombia(pred[0].tiempo);
 
-        // 2. Máximo Esperado
         const maxVal = Math.max(...pred.map(p => p.limite_superior));
         document.getElementById("kpi-maximo").textContent = maxVal.toFixed(2);
       }
 
-      // 3. Última observación
       if (hist.length > 0) {
         const ultimo = hist[hist.length - 1];
         document.getElementById("kpi-ultimo-valor").textContent = ultimo.valor.toFixed(2);
         document.getElementById("kpi-ultimo-tiempo").textContent = aHoraColombia(ultimo.tiempo);
       }
 
-      // 4. Calidad del sensor
       const rellenadas = data.horas_rellenadas || 0;
       document.getElementById("kpi-rellenadas").textContent = rellenadas;
       document.getElementById("kpi-calidad-estado").textContent = rellenadas === 0 
-        ? "✅ Serie continua sin fallos" 
+        ? "✅ Serie continua sin huecos" 
         : `⚠️ ${rellenadas}h ajustadas por el sistema`;
     }
 
     function actualizarTabla(predicciones) {
       const tbody = document.getElementById("filas-prediccion");
       if (!predicciones || predicciones.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="4" class="p-3 text-center text-slate-500">Sin predicciones disponibles</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="4" class="p-3 text-center text-slate-400">Sin predicciones disponibles</td></tr>`;
         return;
       }
 
       tbody.innerHTML = predicciones.map(p => `
-        <tr class="hover:bg-slate-800/50 transition-colors">
-          <td class="p-2.5 font-medium text-slate-200">${aHoraColombia(p.tiempo)}</td>
-          <td class="p-2.5 font-semibold text-brand-cyan">${p.prediccion.toFixed(2)}</td>
-          <td class="p-2.5 text-slate-400">${p.limite_inferior.toFixed(2)}</td>
-          <td class="p-2.5 text-slate-400">${p.limite_superior.toFixed(2)}</td>
+        <tr class="hover:bg-sky-50/50 transition-colors">
+          <td class="p-2.5 font-medium text-slate-700">${aHoraColombia(p.tiempo)}</td>
+          <td class="p-2.5 font-semibold text-sky-700">${p.prediccion.toFixed(2)}</td>
+          <td class="p-2.5 text-slate-500">${p.limite_inferior.toFixed(2)}</td>
+          <td class="p-2.5 text-slate-500">${p.limite_superior.toFixed(2)}</td>
         </tr>
       `).join("");
     }
@@ -407,13 +416,11 @@
       const hist = data.historico || [];
       const pred = data.prediccion || [];
 
-      // Fusionar etiquetas de tiempo
       const labels = [
         ...hist.map(h => aHoraColombia(h.tiempo)),
         ...pred.map(p => aHoraColombia(p.tiempo))
       ];
 
-      // Arreglos de series
       const valoresHist = [...hist.map(h => h.valor), ...pred.map(() => null)];
       const ultimoHistValor = hist.length > 0 ? hist[hist.length - 1].valor : null;
 
@@ -447,8 +454,8 @@
             {
               label: "Histórico Real",
               data: valoresHist,
-              borderColor: "#06b6d4",
-              backgroundColor: "#06b6d4",
+              borderColor: "#0284c7",
+              backgroundColor: "#0284c7",
               borderWidth: 2,
               pointRadius: 0,
               pointHoverRadius: 4,
@@ -457,8 +464,8 @@
             {
               label: "Pronóstico SARIMA",
               data: valoresPred,
-              borderColor: "#3b82f6",
-              backgroundColor: "#3b82f6",
+              borderColor: "#6366f1",
+              backgroundColor: "#6366f1",
               borderWidth: 2.5,
               borderDash: [4, 4],
               pointRadius: 2,
@@ -472,10 +479,10 @@
               fill: false
             },
             {
-              label: "Banda de Incertidumbre",
+              label: "Intervalo de Confianza",
               data: limiteInf,
               borderColor: "transparent",
-              backgroundColor: "rgba(59, 130, 246, 0.18)",
+              backgroundColor: "rgba(99, 102, 241, 0.12)",
               fill: "-1",
               pointRadius: 0
             }
@@ -488,14 +495,14 @@
           plugins: {
             legend: {
               labels: {
-                color: "#94a3b8",
+                color: "#475569",
                 filter: item => item.text !== "Límite Superior"
               }
             },
             tooltip: {
               callbacks: {
                 label: function(ctx) {
-                  if (ctx.dataset.label === "Banda de Incertidumbre") return null;
+                  if (ctx.dataset.label === "Intervalo de Confianza") return null;
                   return `${ctx.dataset.label}: ${ctx.parsed.y ? ctx.parsed.y.toFixed(2) : '--'}`;
                 }
               }
@@ -504,63 +511,22 @@
           scales: {
             x: {
               ticks: { color: "#64748b", maxRotation: 45, autoSkip: true, maxTicksLimit: 12 },
-              grid: { color: "#334155" }
+              grid: { color: "#f1f5f9" }
             },
             y: {
               ticks: { color: "#64748b" },
-              grid: { color: "#334155" }
+              grid: { color: "#f1f5f9" }
             }
           }
         }
       });
     }
 
-    // Descarga de Archivos
+    // Exportación
     function descargarCSV() {
       if (!datosRespuesta || !datosRespuesta.prediccion) {
-        mostrarError("No hay datos de pronóstico para descargar.");
+        mostrarError("No hay datos para descargar.");
         return;
       }
       let csv = "Tiempo (Colombia),Tiempo (UTC),Prediccion,Limite Inferior,Limite Superior\n";
-      datosRespuesta.prediccion.forEach(p => {
-        csv += `"${aHoraColombia(p.tiempo)}","${p.tiempo}",${p.prediccion},${p.limite_inferior},${p.limite_superior}\n`;
-      });
-
-      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.setAttribute("href", url);
-      link.setAttribute("download", `pronostico_servidores_${new Date().toISOString().slice(0, 10)}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
-
-    function descargarJSON() {
-      if (!datosRespuesta) {
-        mostrarError("No hay datos de pronóstico para descargar.");
-        return;
-      }
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(datosRespuesta, null, 2));
-      const link = document.createElement("a");
-      link.setAttribute("href", dataStr);
-      link.setAttribute("download", `pronostico_servidores_${new Date().toISOString().slice(0, 10)}.json`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
-
-    function cargarTodo() {
-      verificarSalud();
-      cargarMetadatosModelo();
-      cargarPronostico();
-    }
-
-    // Inicialización al cargar la página
-    document.addEventListener("DOMContentLoaded", () => {
-      lucide.createIcons();
-      cargarTodo();
-    });
-  </script>
-</body>
-</html>
+      datosRespuesta.
