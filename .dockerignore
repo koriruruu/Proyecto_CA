@@ -1,0 +1,13 @@
+.env
+.git
+.gitignore
+.devcontainer/
+notebooks/
+scripts/
+pruebas.http
+README.md
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
